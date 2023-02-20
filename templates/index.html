@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head xmlns="http://www.w3.org/1999/xhtml">
+    <meta charset="UTF-8">
+    <title>Car Price Predictor</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+
+</head>
+<body class="bg-dark">
+
+<div class="container-lg">
+    <div class="row">
+        <div class="card mt-50" style="width: 100%; height: 100%;background-color:#6e4144;">
+            <div class="card-header" style="text-align: center;background-color:#6e4144;color:white;margin-left:20px;">
+                <h1><b>Welcome to Car Price Predictor</b></h1>
+                <h5>( This app predicts the price of a car you want to sell/buy. Try this by filling the details below. )</h5>
+            </div>
+            <div class="card-body" style="text-align: center;background-color:white ;color:#0B0505;">
+                <div class="col-12" style="text-align: center;color:#421f21;">
+
+                </div>
+
+
+                <form method="post" accept-charset="utf-8" name="Modelform">
+                    <div class="row" style="text-align: left;width: 100%; height: 100%;color:#6e4144;">
+                        <div class="col-sm form-group" style="color:#6e4144;">
+                            <label><b>BRAND :</b> </label>
+                            <select class="selectpicker form-control" id="cBrands" name="cBrands" required="1" onchange="load_cModels(this.id,'cModels') ">
+                                <option disabled selected value> -- select a brand name -- </option>
+                                {% for cBrands in cBrands %}
+                                <option value="{{ cBrands }}">{{ cBrands }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm form-group" style="color:#6e4144;">
+                            <label><b>MODEL :</b> </label>
+                            <select class="selectpicker form-control" id="cModels" name="cModels" required="1">
+                                <option disabled selected value> -- select a model -- </option>
+                                {% for cModels in cModels %}
+                                <option value="{{ cModels }}">{{ cModels }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: left;width: 100%; height: 100%;color:#6e4144;">
+                        <div class="col-sm form-group" style="color:#6e4144;">
+                            <label><b>PURCHASED YEAR :</b> </label>
+                            <select class="selectpicker form-control" id="cYears" name="cYears" required="1">
+                                <option disabled selected value> -- select an purchased year -- </option>
+                                {% for cYears in cYears %}
+                                <option value="{{ cYears }}">{{ cYears }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm form-group" style="color:#6e4144;">
+                            <label><b>FUEL TYPE :</b> </label>
+                            <select class="selectpicker form-control" id="cFuel" name="cFuel" required="1">
+                                <option disabled selected value> -- select a fuel type -- </option>
+                                {% for cFuel in cFuel %}
+                                <option value="{{ cFuel }}">{{ cFuel }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: left;width: 120%; height: 100%;color:#6e4144;">
+                        <div class="col-md-10 form-group" style="text-align: left;width: 50%; height: 100%;">
+                            <label><b>TRAVELLED KMs :</b> </label><br>
+                            <input type="text" class="form-control" id="cKm" name="cKm" placeholder="Enter the kilometres driven" required>
+                        </div>
+                    </div>
+
+                    <br>
+
+                    <div class="col-md-10 form-group" style="text-align: center;width: 20%; height: 100%;margin-left:430px;color:#6e4144;">
+                        <button  class="button" onclick="send_data()"><b>Predict Price</b></button>
+                    </div>
+
+
+                </form>
+
+                <div class="row">
+                    <div class="col-12" style="text-align: center;color:#6e4144;">
+                        <h3><span id="prediction"></span></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="footer" style="text-align: center;font-size:12px;color:white;">Made with<span style="font-size:23px;color:red;"> &hearts;</span> by <b>dSachin</b>
+                    </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    function load_cModels(company_id,car_model_id)
+    {
+        var car_brand=document.getElementById(company_id);
+        var car_model= document.getElementById(car_model_id);
+        console.log(car_brand.value);
+        car_model.value="";
+        car_model.innerHTML="";
+        {% for car_brand in cBrands %}
+            if( car_brand.value == "{{ car_brand }}")
+            {
+                {% for model in cModels %}
+                    {% if car_brand in model %}
+
+                        var newOption= document.createElement("option");
+                        newOption.value="{{ model }}";
+                        newOption.innerHTML="{{ model }}";
+                        car_model.options.add(newOption);
+                    {% endif %}
+                {% endfor %}
+            }
+        {% endfor %}
+    }
+
+    function form_handler(event) {
+        event.preventDefault(); // Don't submit the form normally
+    }
+    function send_data()
+    {
+        document.querySelector('form').addEventListener("submit",form_handler);
+
+        var fd=new FormData(document.querySelector('form'));
+
+        var xhr= new XMLHttpRequest({mozSystem: true});
+
+        xhr.open('POST','/predict',true);
+        document.getElementById('prediction').innerHTML="Wait! Predicting Price.....";
+
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState == XMLHttpRequest.DONE){
+                document.getElementById('prediction').innerHTML="The Approx. Price For Selected Configuration is : ₹ "+xhr.responseText;
+
+            }
+        };
+
+        xhr.onload= function(){};
+
+        xhr.send(fd);
+    }
+</script>
+
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+</body>
+</html>
